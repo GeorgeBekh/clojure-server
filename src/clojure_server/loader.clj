@@ -1,18 +1,31 @@
-(ns clojure-server.loader)
+(ns clojure-server.loader
+  (:require [clojure.data.json :as json]))
 
 (defn get-filename [name num]
   (str "./data/" name "_" num ".json"))
 
-(defn get-content
-  ([name callback]
-   (get-content name callback 1))
-  ([name callback num]
-   (def filename (get-filename name num))
-   (if (.exists (clojure.java.io/file filename))
-     (do
-       (callback (slurp filename))
-       (get-content name callback (+ num 1))))))
+(defn get-content [name]
+  (loop [i 1 collection '()]
+    (def filename (get-filename name i))
+    (if (.exists (clojure.java.io/file filename))
+      (do
+        (println (str "Reading file " filename))
+        (def entities (list (get (json/read-str (slurp filename)) name)))
+        (recur
+         (inc i)
+         (concat collection entities)))
+      collection)))
 
-(get-content "users" (fn [content] (println (subs content 0 10))))
+(defn convert [content]
+  (reduce
+   (fn [a entities]
+     (merge a (reduce
+      (fn [a entity]
+        (assoc a (get entity "id") entity))
+      (hash-map)
+      entities)))
+   (hash-map)
+   content))
 
-(def testing "test")
+(defn load [entity-name]
+   (convert (get-content entity-name)))
