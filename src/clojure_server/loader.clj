@@ -1,5 +1,5 @@
 (ns clojure-server.loader
-  (:require [clojure.data.json :as json]))
+  (:require [cheshire.core :refer :all]))
 
 (defn get-filename [name num]
   (str "./data/" name "_" num ".json"))
@@ -10,7 +10,7 @@
     (if (.exists (clojure.java.io/file filename))
       (do
         (println (str "Reading file " filename))
-        (def entities (list (get (json/read-str (slurp filename)) name)))
+        (def entities (list (get (parse-string (slurp filename)) name)))
         (recur
          (inc i)
          (concat collection entities)))
