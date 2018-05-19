@@ -4,8 +4,6 @@
 (defn wrap-json [handler]
   (fn [request]
     (let [response (handler request)]
-      (println (type (get response :body)))
       (conj
-       response
-       (assoc-in response [:headers "Content-type"] "application/json;charset=UTF-8")
-       (hash-map :body (json/generate-string (get response :body)))))))
+       (assoc-in response [:headers "Content-Type"] "application/json;charset=UTF-8")
+       (hash-map :body (json/generate-string (:body response)))))))
